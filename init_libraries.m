@@ -1,8 +1,11 @@
 %% Add to Path Script
 
 % Absolute path to the libraries on your system
-dynamixel_library_path = '/home/fer/PHD_RESEARCH/TA/RBE-502/DynamixelSDK'; % Change this to the absolute location of the dynamixel library on your system
-%
+if strcmp(getenv('USER'), 'lh')
+    dynamixel_library_path = '/home/lh/nextcloud-sync/wpi/rbe502-control/project/DynamixelSDK';
+else
+    dynamixel_library_path = '/home/pinaka/DynamixelSDK';
+end
 % Add necessary folders and subfolders from the Dynamixel Library
 addpath(genpath(dynamixel_library_path + "/c/include"));
 addpath(dynamixel_library_path + "/c/build/linux64");
