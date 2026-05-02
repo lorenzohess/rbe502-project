@@ -20,24 +20,24 @@ z0 = [0 0 1];
 
 % omega
 w1 = z0;
-w2 = x0;
-w3 = x0;
-w4 = x0;
+w2 = -x0;
+w3 = -x0;
+w4 = -x0;
 
 % p
 p1 = [0 0 0];
 p2 = [0 0 d1];
 p3 = p2 + [0 a2short a2];
-p4 = p3 + [0 0 a3];
-pF = p4 + [0 0 a4];
+p4 = p3 + [0 a3 0];
+pF = p4 + [0 a4 0];
 
 %% YOUR CODE HERE
-S = [w1 0 0 0;
+S = [w1 -cross(w1, p1);
      w2 -cross(w2, p2);
      w3 -cross(w3, p3);
      w4 -cross(w4, p4)]';
 
-R = [0 -1 0; 0 0 -1; 1 0 0]';
+R = eye(3);
 p = pF';
 M = [R p; 0 0 0 1];
 end
