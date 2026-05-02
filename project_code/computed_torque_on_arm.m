@@ -2,37 +2,14 @@
 clc, clear all, close all;
 
 %% Add Subfolder
-addpath("Communication_Code");
-addpath("generated_dynamics")
+addpath("../Communication_Code");
+addpath("../generated_dynamics")
 addpath("/home/lh/nextcloud-sync/wpi/rbe502-control/OpenManipulator-X")
-
-%% Define robot
-robot = Robot();
-
-%% Define the type of low level control of the robot this is current mode
-robot.writeMode('c');
-
-%% Define sample time
-t_sample = 0.04;
-tfin = 10;
-t = 0:t_sample:tfin;
 
 %% Factor from degres to rad
 factor_degre_to_rad = pi/180;
 factor_mA_to_A = 1/1000;
 factor_A_to_mA = 1000/1;
-
-%% Joint Positions
-q_real = zeros(4, length(t)+1);
-q_dot_real = zeros(4, length(t)+1);
-current_real = zeros(4, length(t)+1);
-
-
-%% Read Initial Conditions
-joint_readings = robot.getJointsReadings();
-q_real(:, 1) = joint_readings(1, :)*factor_degre_to_rad;
-q_dot_real(:, 1) = joint_readings(2, :)*factor_degre_to_rad;
-current_real(:, 1) = joint_readings(3, :)*factor_mA_to_A;
 
 %% System parameters
 R =load('../Identification/identification_result.mat');
@@ -45,32 +22,55 @@ p = [R.p(1:6); ...
      R.id_info.g];
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
 
-Kp = 1*eye(4);
-Kv = 0.02*eye(4);
-alpha = 0.3;
-qdot_filt = 0;
-qdot_prev_filt = 0;
+Kp = 10*eye(4);
+Kv = 2*eye(4);
+% alpha = 0.3;
+% qdot_filt = 0;
+% qdot_prev_filt = 0;
 
-%% Constants
-q1_desired = 1.0*ones(1, length(t));
-q2_desired = 0.0*ones(1, length(t));
-q3_desired = 0.0*ones(1, length(t));
-q4_desired = 0.0*ones(1, length(t));
+%% Constant trajectory
+% q1_desired = 1.0*ones(1, length(t));
+% q2_desired = 0.0*ones(1, length(t));
+% q3_desired = 0.0*ones(1, length(t));
+% q4_desired = 0.0*ones(1, length(t));
+% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+% q_desired_ddot = [0; 0; 0; 0];
 
-q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-%% If you implement a full inverse dynamics controller you can define a desired velocity for each joint
-q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+%% Load desired trajectory from file 
+square_trajectory
+traj_data      = load('desired_trajectory.mat');
+q_desired      = traj_data.q_desired;       % 4 x N
+q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
+q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
+t_sample       = traj_data.t_sample;
+tfin           = (size(q_desired,2)-1) * t_sample
+t = 0:t_sample:tfin;
+
+%% Define robot
+robot = Robot();
+
+%% Define the type of low level control of the robot this is current mode
+robot.writeMode('c');
+
+%% Joint Positions
+q_real = zeros(4, length(t)+1);
+q_dot_real = zeros(4, length(t)+1);
+current_real = zeros(4, length(t)+1);
+
+%% Read Initial Conditions
+joint_readings = robot.getJointsReadings();
+q_real(:, 1) = joint_readings(1, :)*factor_degre_to_rad;
+q_dot_real(:, 1) = joint_readings(2, :)*factor_degre_to_rad;
+current_real(:, 1) = joint_readings(3, :)*factor_mA_to_A;
 
 %% Control Loop
 for k = 1:length(t) 
     tic
     %% Create Control Law Your Controller goes Here
-    q_real = (joint_readings(1, :)*factor_degre_to_rad)'
-    q_dot_real = (joint_readings(2, :)*factor_degre_to_rad)'
-    [qddot, qdot_filt] = qddot_filter(q_dot_real, qdot_filt, qdot_prev_filt, alpha, t_sample);
-    qdot_prev = qdot_filt;
-    qdot_prev_filt = qdot_filt;
-    tau_k(:, k) = tau_computed_torque(q_desired(:,k), q_desired_dot(:,k), q_real, q_dot_real, qddot, Kp, Kv, p);
+    q_now = (joint_readings(1, :)*factor_degre_to_rad)';
+    q_dot_now = (joint_readings(2, :)*factor_degre_to_rad)';
+    tau_k(:, k) = tau_computed_torque(q_now, q_dot_now, q_desired(:,k), q_desired_dot(:,k), q_desired_ddot(:,k), Kp, Kv, p);
     % tau_k(:, k) = [0;0;0;0];
 
     torques = [tau_k(1, k), tau_k(2, k), tau_k(3, k), tau_k(4, k)];
@@ -92,7 +92,6 @@ for k = 1:length(t)
     q_real(:, k+1) = joint_readings(1, :)*factor_degre_to_rad;
     q_dot_real(:, k+1) = joint_readings(2, :)*factor_degre_to_rad;
     current_real(:, k+1) = joint_readings(3, :)*factor_mA_to_A;
-
 end
 
 %% Save data histories at sample k
