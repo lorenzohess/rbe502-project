@@ -29,23 +29,26 @@ Kv = 2*eye(4);
 % qdot_prev_filt = 0;
 
 %% Constant trajectory
-% q1_desired = 1.0*ones(1, length(t));
-% q2_desired = 0.0*ones(1, length(t));
-% q3_desired = 0.0*ones(1, length(t));
-% q4_desired = 0.0*ones(1, length(t));
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-% q_desired_ddot = [0; 0; 0; 0];
+t_sample       = 0.04;
+tfin           = 10;
+t = 0:t_sample:tfin;
+q1_desired = 0.0*ones(1, length(t));
+q2_desired = 0.0*ones(1, length(t));
+q3_desired = 0.0*ones(1, length(t));
+q4_desired = 1.0*ones(1, length(t));
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 
 %% Load desired trajectory from file 
-square_trajectory
-traj_data      = load('desired_trajectory.mat');
-q_desired      = traj_data.q_desired;       % 4 x N
-q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
-q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
-t_sample       = traj_data.t_sample;
-tfin           = (size(q_desired,2)-1) * t_sample
-t = 0:t_sample:tfin;
+% square_trajectory
+% traj_data      = load('desired_trajectory.mat');
+% q_desired      = traj_data.q_desired;       % 4 x N
+% q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
+% q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
+% t_sample       = traj_data.t_sample;
+% tfin           = (size(q_desired,2)-1) * t_sample
+% t = 0:t_sample:tfin;
 
 %% Define robot
 robot = Robot();
