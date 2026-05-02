@@ -1,5 +1,4 @@
 %% Setup robot
-% computed_torque_on_arm_to_home
 clc, clear all, close all;
 
 %% Add Subfolder
@@ -23,33 +22,20 @@ p = [R.p(1:6); ...
      R.id_info.g];
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
 
-Kp = diag([ 20 30 50 40 ]);
-Kv = diag([ 4 6 6 2 ]);
-% alpha = 0.3;
-% qdot_filt = 0;
-% qdot_prev_filt = 0;
+Kp = 30*eye(4);
+Kv = 10*eye(4);
 
 %% Constant trajectory
-% t_sample       = 0.04;
-% tfin           = 10;
-% t = 0:t_sample:tfin;
-% q1_desired = 0.0*ones(1, length(t));
-% q2_desired = 0.0*ones(1, length(t));
-% q3_desired = 0.0*ones(1, length(t));
-% q4_desired = 1.0*ones(1, length(t));
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-
-%% Load desired trajectory from file 
-%square_trajectory
-traj_data      = load('desired_trajectory.mat');
-q_desired      = traj_data.q_desired;       % 4 x N
-q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
-q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
-t_sample       = traj_data.t_sample;
-tfin           = (size(q_desired,2)-1) * t_sample;
+t_sample       = 0.04;
+tfin           = 3;
 t = 0:t_sample:tfin;
+q1_desired = 0.0*ones(1, length(t));
+q2_desired = 0.0*ones(1, length(t));
+q3_desired = 0.0*ones(1, length(t));
+q4_desired = 0.0*ones(1, length(t));
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 
 %% Define robot
 robot = Robot();
@@ -67,22 +53,11 @@ joint_readings = robot.getJointsReadings();
 q_real(:, 1) = joint_readings(1, :)*factor_degre_to_rad;
 q_dot_real(:, 1) = joint_readings(2, :)*factor_degre_to_rad;
 current_real(:, 1) = joint_readings(3, :)*factor_mA_to_A;
-%% Plotting
-% p_real_log    = zeros(3, length(t));
-% p_desired_log = zeros(3, length(t));
 %% Control Loop
 for k = 1:length(t) 
     tic
     %% Create Control Law Your Controller goes Here
     q_now = (joint_readings(1, :)*factor_degre_to_rad)';
-    % T = fkine(S,M,q_now,'space');
-    % disp("Current p")
-    % disp(T(1:3,4))
-    % disp("Desired p")
-    % Tdesired = fkine(S,M,q_desired(:,k),'space');
-    % p_real_log(:,k)    = T(1:3,4);
-    % p_desired_log(:,k) = Tdesired(1:3,4);
-    % disp(Tdesired(1:3,4))
     q_dot_now = (joint_readings(2, :)*factor_degre_to_rad)';
     tau_k(:, k) = tau_computed_torque(q_now, q_dot_now, q_desired(:,k), q_desired_dot(:,k), q_desired_ddot(:,k), Kp, Kv, p);
     % tau_k(:, k) = [0;0;0;0];
@@ -110,48 +85,34 @@ for k = 1:length(t)
 end
 
 %% Save data histories at sample k
-% q_real_k = q_real(:, 1:length(t));
-% q_dot_real_k = q_dot_real(:, 1:length(t));
-% current_real_k = current_real(:, 1:length(t));
+q_real_k = q_real(:, 1:length(t));
+q_dot_real_k = q_dot_real(:, 1:length(t));
+current_real_k = current_real(:, 1:length(t));
 
 %% Final Values
-tau = [0,0,0,0];
-current = tau;
-robot.writeCurrents(current); % Write joints to zero position
-disp("Movement Complete")
-
-%% Plotting
-%% Animate the robot and overlay desired/actual end-effector paths
-% figure('Name','Robot animation','NumberTitle','off')
-% robot.plot(q_real(:,1:length(t))', 'trail', 'b-', 'fps', 30)
-% hold on
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5)
-% legend('','Desired','Location','best')
-
-%% Static 3D comparison plot
-% figure('Name','EE trajectory','NumberTitle','off')
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5); hold on
-% plot3(p_real_log(1,:),    p_real_log(2,:),    p_real_log(3,:),    'b-', 'LineWidth', 1.5)
-% xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]')
-% grid on; axis equal
-% legend('Desired','Actual'); title('End-effector trajectory')
-
+% tau = [0,0,0,0];
+% current = tau;
+% robot.writeCurrents(current); % Write joints to zero position
+% disp("Movement Complete")
+% 
+% % Plotting
+% figure(1)
 % q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
 % tau_all = tau_k;
-
-figure(1)
-for i = 1:4
-    subplot(2,2,i)
-    plot(t, q_desired(i,:), 'r.')
-    hold on
-    plot(t, q_real(i,1:length(t)), 'b.')
-    xlabel('Time [s]')
-    ylabel(['q', num2str(i), ' [rad]'])
-    title(['Joint ', num2str(i), ' Angle'])
-    legend('Desired', 'Current', 'Location', 'best')
-    grid on
-end
-
+% 
+% figure(1)
+% for i = 1:4
+%     subplot(2,2,i)
+%     plot(t, q_desired(i,:), 'r.')
+%     hold on
+%     plot(t, q_real(i,1:length(t)), 'b.')
+%     xlabel('Time [s]')
+%     ylabel(['q', num2str(i), ' [rad]'])
+%     title(['Joint ', num2str(i), ' Angle'])
+%     legend('Desired', 'Current', 'Location', 'best')
+%     grid on
+% end
+% 
 % figure(2)
 % for i = 1:4
 %     subplot(2,2,i)
@@ -161,7 +122,7 @@ end
 %     title(['Joint ', num2str(i), ' Velocity'])
 %     grid on
 % end
-
+% 
 % figure(3)
 % for i = 1:4
 %     subplot(2,2,i)
