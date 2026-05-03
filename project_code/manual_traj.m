@@ -10,7 +10,7 @@ factor_A_to_mA      = 1000;
 
 %% Recording parameters
 t_sample = 0.05;          % 20 Hz logging period
-tfin     = 10;            % total recording time [s] - bump up if you need more
+tfin     = 15;            % total recording time [s] - bump up if you need more
 t        = 0:t_sample:tfin;
 N        = length(t);
 alpha    = 0.3;           % EMA factor: qdot_filt = alpha*qdot + (1-alpha)*qdot_prev_filt
@@ -72,7 +72,7 @@ for k = 1:N
                               q_now, zeros(4,1), zeros(4,1), ...
                               zeros(4), zeros(4), p);
     current_mA = torque_to_current(tau') * factor_A_to_mA;
-    robot.writeCurrents(current_mA);
+    % robot.writeCurrents(current_mA);
 
     qdot_prev_filt = qdot_filt;
 
@@ -92,7 +92,7 @@ t_traj         = t;
 waypoints      = q_log;     % keep field for compatibility
 path           = [];        % no cartesian path defined here
 
-save('desired_trajectory.mat', ...
+save('desired_trajectory_plus10ms.mat', ...
      'q_desired', 'q_desired_dot', 'q_desired_ddot', ...
      't_traj', 't_sample', 'waypoints', 'path');
-fprintf("Saved desired_trajectory.mat - %.2f s, %d samples.\n", t_traj(end), N);
+fprintf("Saved desired_trajectory_plus10ms.mat - %.2f s, %d samples.\n", t_traj(end), N);

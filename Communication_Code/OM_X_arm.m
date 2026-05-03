@@ -40,8 +40,8 @@ classdef OM_X_arm < handle
             % Find serial port and connect to it
             try
                 devices = serialportlist();
-                disp("devices:")
-                disp(devices)
+                % disp("devices:")
+                % disp(devices)
                 ttyDevs = devices(contains(devices,"/dev/ttyUSB"));
                 % ttyDevs = devices(contains(devices,"COM5"));
                 disp("ttyDevs: ")

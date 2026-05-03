@@ -1,6 +1,6 @@
-function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, qddot, ...
+function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
                                                       qd, qdDot, qdDdot, ...
-                                                      Kp, Kv, P, R_gain, ...
+                                                      Kp, Kv, P, R_inv, ...
                                                       pi_hat, p_bar, dt)
 % Adaptive computed-torque controller.
 %   tau = Y(q,qdot,a,p_bar) * pi_hat
@@ -10,35 +10,31 @@ function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, qddot, ...
 
     n = length(q);
 
-    % Step 1 -- errors
+    % Errors
     e    = qd    - q;
     edot = qdDot - qdot;
     xi   = [e; edot];
 
-    % Step 3 -- reference acceleration
+    % Reference acceleration
     a = qdDdot + Kv*edot + Kp*e;
 
-    % Step 4 -- control law (linear in adapted parameters)
-    % clc
+    % Control law
     Y_a = Y_fun(q, qdot, a, p_bar);
     tau = Y_a * pi_hat;
 
-    % Step 5 -- B_hat(q) = M_hat(q) via column extraction
-    %   M(:,j)*pi = (Y(q,0,e_j,p) - Y(q,0,0,p)) * pi_hat
+    % B_hat(q) via column extraction
     zer    = zeros(n,1);
     Y_grav = Y_fun(q, zer, zer, p_bar);
     B_hat  = zeros(n);
-    for j = 1:n
-        ej         = zer; ej(j) = 1;
+    for jj = 1:n
+        ej         = zer; ej(jj) = 1;
         Y_j        = Y_fun(q, zer, ej, p_bar);
-        B_hat(:,j) = (Y_j - Y_grav) * pi_hat;
+        B_hat(:,jj) = (Y_j - Y_grav) * pi_hat;
     end
-
-    % Step 6 -- adaptation law (uses *measured/estimated* qddot)
+    
     E          = [zeros(n); eye(n)];
-    Y_dyn      = Y_fun(q, qdot, qddot, p_bar);
-    s          = B_hat \ (E' * P * xi);
-    pi_hat_dot = R_gain \ (Y_dyn' * s);
+    Y_dyn      = Y_fun(q, qdot, qdDdot, p_bar);
+    pi_hat_dot = R_inv * Y_dyn' * pinv(B_hat)' * E' * P * xi;
 
     % Euler integration
     pi_hat_new = pi_hat + pi_hat_dot * dt;
