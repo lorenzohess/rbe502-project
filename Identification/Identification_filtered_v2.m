@@ -75,7 +75,7 @@ end
 figure(2)
 for i = 1:4
     subplot(2,2,i)
-    plot(t, q_dot_real_k(i,:), '.k'); hold on
+    plot(t, q_dot_real_k(i,:), '.b'); hold on
     plot(t, q_real_dot_filter(i,:), '.m');
     xlabel('Time [s]')
     ylabel(['dq', num2str(i), ' [rad/s]'])
@@ -87,7 +87,7 @@ end
 figure(3)
 for i = 1:4
     subplot(2,2,i)
-    plot(t, tau(i,:), '.k'); hold on
+    plot(t, tau(i,:), '.b'); hold on
     plot(t, tau_filter(i,:), '.m');
     xlabel('Time [s]')
     ylabel(['tau', num2str(i), ' [Nm]'])

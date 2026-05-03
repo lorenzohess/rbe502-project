@@ -13,7 +13,7 @@ robot.writeMotorState(true);
 
 %% Timing for position interpolation and loop
 t_sample = 0.04;   % travel time per commanded point [s]
-tfin = 15;
+tfin = 60;
 t = 0:t_sample:tfin;
 
 %% Unit factors
