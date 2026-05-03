@@ -8,5 +8,5 @@ function tau = tau_computed_torque(q, qdot, qd, qdDot, qdDdot, Kp, Kv, p, pf)
 
     % tau_friction = ViscousFriction_fun(qdot, pf);
 
-    tau = M * (qdDdot + Kv*edot + Kp*e) + C*qdot + G;
+    tau = M * qdDdot + Kv*edot + Kp*e + C*qdot + G;
 end
