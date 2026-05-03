@@ -22,54 +22,55 @@ p = [R.p(1:6); ...
      R.x_opt_vec(14); R.x_opt_vec(15); R.x_opt_vec(16); ...
      R.id_info.g];
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
-% p(10) = 0.133;
-% p(7) = 0.100;
+
 q_dot_filt = zeros(4, 1);
-Kp = diag([0.2 0.15 0.45 0.2]);
-Kv = diag([0.05 0.05 0.05 0.05]);
 alpha = 0.2;
 
 %% Constant trajectory
-t_sample       = 0.04;
-tfin           = 5;
-t = 0:t_sample:tfin;
-q1_desired = deg2rad(39)*ones(1, length(t));
-q2_desired = deg2rad(-28)*ones(1, length(t));
-q3_desired = deg2rad(55)*ones(1, length(t));
-q4_desired = deg2rad(-57)*ones(1, length(t));
-q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+% Kp = diag([0.2 0.15 0.45 0.2]);
+% Kv = diag([0.05 0.05 0.05 0.05]);
+% t_sample       = 0.04;
+% tfin           = 5;
+% t = 0:t_sample:tfin;
+% q1_desired = deg2rad(39)*ones(1, length(t));
+% q2_desired = deg2rad(-28)*ones(1, length(t));
+% q3_desired = deg2rad(55)*ones(1, length(t));
+% q4_desired = deg2rad(-57)*ones(1, length(t));
+% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 
 %% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
-% t_sample = 0.04;
-% tfin = 10;
-% t = 0:t_sample:tfin;
-% 
-% omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
-% 
-% q1_desired = 0.5 * sin(omega * t);
-% q2_desired = -0.5 * sin(omega * t);
-% q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
-% q4_desired = -0.5 * sin(omega * t);
-% 
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% 
-% % Velocity (automatically sinusoidal)
-% q1_desired_dot = 0.5 * omega * cos(omega * t);
-% q2_desired_dot = -0.5 * omega * cos(omega * t);
-% q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
-% q4_desired_dot = -0.5 * omega * cos(omega * t);
-% 
-% q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
-% 
-% % Acceleration (automatically sinusoidal)
-% q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
-% q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
-% q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
-% q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
-% 
-% q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
+Kp = diag([0.2 0.2 0.5 0.2]);
+Kv = diag([0.05 0.05 0.05 0.05]);
+t_sample = 0.04;
+tfin = 10;
+t = 0:t_sample:tfin;
+
+omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
+
+q1_desired = 0.5 * sin(omega * t);
+q2_desired = -0.5 * sin(omega * t);
+q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
+q4_desired = -0.5 * sin(omega * t);
+
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+
+% Velocity (automatically sinusoidal)
+q1_desired_dot = 0.5 * omega * cos(omega * t);
+q2_desired_dot = -0.5 * omega * cos(omega * t);
+q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
+q4_desired_dot = -0.5 * omega * cos(omega * t);
+
+q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
+
+% Acceleration (automatically sinusoidal)
+q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
+q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
+q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+
+q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
 
 %% Load desired trajectory from file 
 %square_trajectory
