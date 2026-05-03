@@ -43,8 +43,8 @@ q_dot_filt = zeros(4, 1);
 alpha = 0.2;
 
 %% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
-Kp = diag([0.2 0.22 0.4 0.2]);
-Kv = diag([0.1 0.08 0.1 0.05]);
+Kp = diag([0.2 0.35 0.6 0.2]);
+Kv = diag([0.075 0.05 0.05 0.05]);
 t_sample = 0.04;
 tfin = 10;
 t = 0:t_sample:tfin;
