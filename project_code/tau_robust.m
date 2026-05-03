@@ -12,10 +12,11 @@ function tau = tau_robust(q, qdot, qd, qdDot, qdDdot, Kp, Kv, P, rho, p_bar)
     W = 2 * E' * P * xi;
 
     nW = norm(W);
-    if nW > 1e-9
+    epsilon = 0.1;
+    if nW > epsilon
         Delta = rho * (W / nW);
     else
-        Delta = zeros(4, 1);
+        Delta = rho * (W / epsilon);
     end
 
     tau = Mbar * qdDdot + Kv*edot + Kp*e + Delta + Cbar*qdot + Gbar;
