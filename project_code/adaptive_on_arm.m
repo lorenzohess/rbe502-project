@@ -25,24 +25,17 @@ p = [R.p(1:6); ...
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
 p_bar = p;
 
-Kp = diag([40 40 40 40]);
-Kv = diag([14 14 14 14]);
-% Kp = diag([20 30 60 50]);
-% Kv = diag([9 11 16 15]);
-A = [zeros(n) eye(n); -Kp -Kv];
-Q = eye(2*n);
-P = lyap(A', Q);
-%% Damping analysis for current Kp, Kv
-kp_vec   = diag(Kp);
-kv_vec   = diag(Kv);
-wn_vec   = sqrt(kp_vec);
-zeta_vec = kv_vec ./ (2*wn_vec);
-labels = repmat("underdamped", n, 1);
-labels(zeta_vec >= 0.9 & zeta_vec <= 1.1) = "critical";
-labels(zeta_vec >  1.1) = "overdamped";
-T = table((1:n)', kp_vec, kv_vec, wn_vec, zeta_vec, labels, ...
-          'VariableNames', {'Joint','Kp','Kv','omega_n','zeta','Behavior'});
-disp(T)
+% %% Damping analysis for current Kp, Kv
+% kp_vec   = diag(Kp);
+% kv_vec   = diag(Kv);
+% wn_vec   = sqrt(kp_vec);
+% zeta_vec = kv_vec ./ (2*wn_vec);
+% labels = repmat("underdamped", n, 1);
+% labels(zeta_vec >= 0.9 & zeta_vec <= 1.1) = "critical";
+% labels(zeta_vec >  1.1) = "overdamped";
+% T = table((1:n)', kp_vec, kv_vec, wn_vec, zeta_vec, labels, ...
+%           'VariableNames', {'Joint','Kp','Kv','omega_n','zeta','Behavior'});
+% disp(T)
 
 %% Adaptation setup
 idx_lin = 7:22;
@@ -52,15 +45,37 @@ R_gain = construct_R;
 R_inv = pinv(R_gain);
 alpha_acc = 0.2;                 % low-pass on finite-diff qddot
 
+%% Constant trajectory
+Kp = diag([0.15 0.15 0.5 0.25]);
+Kv = diag([0.1 0.08 0.075 0.05]);
+t_sample       = 0.04;
+tfin           = 15;
+t = 0:t_sample:tfin;
+q1_desired = deg2rad(39)*ones(1, length(t));
+q2_desired = deg2rad(-28)*ones(1, length(t));
+q3_desired = deg2rad(55)*ones(1, length(t));
+q4_desired = deg2rad(-57)*ones(1, length(t));
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+
+
 %% Load desired trajectory from file 
 %square_trajectory
-traj_data      = load('desired_trajectory_plus.mat');
-q_desired      = traj_data.q_desired;       % 4 x N
-q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
-q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
-t_sample       = traj_data.t_sample;
-tfin           = (size(q_desired,2)-1) * t_sample;
-t = 0:t_sample:tfin;
+% traj_data      = load('desired_trajectory_plus.mat');
+% q_desired      = traj_data.q_desired;       % 4 x N
+% q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
+% q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
+% t_sample       = traj_data.t_sample;
+% tfin           = (size(q_desired,2)-1) * t_sample;
+% t = 0:t_sample:tfin;
+% Kp = diag([0.2 0.3 0.3 0.2]);
+% Kv = diag([0.05 0.05 0.05 0.05]);
+
+Mbar = M_fun(q_desired(:,1), p_bar);
+A = [zeros(n) eye(n); -pinv(Mbar)*Kp -pinv(Mbar)*Kv];
+Q = eye(2*n);
+P = lyap(A', Q);
 
 %% Define robot
 robot = Robot();
@@ -106,6 +121,7 @@ for k = 1:length(t)
 
     %% This is the mapping to mA
     current_mA = current*factor_A_to_mA;
+    % current_mA = clip(current_mA, 0, 1800)
 
     robot.writeCurrents(current_mA);
 
@@ -135,7 +151,7 @@ for i = 1:4
     subplot(2,2,i)
     plot(t, q_desired(i,:), 'r.')
     hold on
-    plot(t, q_real(i,1:length(t)), 'b.')
+    plot(t, q_real(i,1:length(t)), 'g.')
     xlabel('Time [s]')
     ylabel(['q', num2str(i), ' [rad]'])
     title(['Joint ', num2str(i), ' Angle'])
@@ -143,5 +159,5 @@ for i = 1:4
     grid on
 end
 
-figure(2)
-plot_pihat
+% figure(2)
+% plot_pihat

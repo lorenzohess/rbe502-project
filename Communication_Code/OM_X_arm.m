@@ -44,8 +44,8 @@ classdef OM_X_arm < handle
                 % disp(devices)
                 ttyDevs = devices(contains(devices,"/dev/ttyUSB"));
                 % ttyDevs = devices(contains(devices,"COM5"));
-                disp("ttyDevs: ")
-                disp(ttyDevs)
+                % disp("ttyDevs: ")
+                % disp(ttyDevs)
                 self.deviceName = convertStringsToChars(ttyDevs(1));
             catch exception
                 error("Failed to connect via serial, no devices found.")

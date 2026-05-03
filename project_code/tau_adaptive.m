@@ -15,12 +15,6 @@ function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
     edot = qdDot - qdot;
     xi   = [e; edot];
 
-    % Reference acceleration
-    a = qdDdot + Kv*edot + Kp*e;
-
-    % Control law
-    Y_a = Y_fun(q, qdot, a, p_bar);
-    tau = Y_a * pi_hat;
 
     % B_hat(q) via column extraction
     zer    = zeros(n,1);
@@ -31,6 +25,13 @@ function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
         Y_j        = Y_fun(q, zer, ej, p_bar);
         B_hat(:,jj) = (Y_j - Y_grav) * pi_hat;
     end
+    
+    % Reference acceleration
+    a = qdDdot + pinv(B_hat)*Kv*edot + pinv(B_hat)*Kp*e;
+
+    % Control law
+    Y_a = Y_fun(q, qdot, a, p_bar);
+    tau = Y_a * pi_hat;
     
     E          = [zeros(n); eye(n)];
     Y_dyn      = Y_fun(q, qdot, qdDdot, p_bar);
