@@ -22,53 +22,55 @@ p = [R.p(1:6); ...
      R.x_opt_vec(14); R.x_opt_vec(15); R.x_opt_vec(16); ...
      R.id_info.g];
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
-% Mass overrides (in kg) - look up actual values from ROBOTIS docs
-p(7)  = 0.080;   % m1
-p(8)  = 0.145;   % m2  
-p(9)  = 0.135;   % m3
-p(10) = 0.080;   % m4 (includes gripper if attached)
-
-% Diagonal inertia approximations: solid cylinder I ≈ (1/12)*m*L^2 along link axis
-% Link 1: ~50mm tall, mostly z-axis rotation
-p(11) = 5e-5;   % Ixx1
-p(12) = 5e-5;   % Iyy1  (override the questionable 3.2e-2)
-p(13) = 2e-5;   % Izz1
-
-% Link 2: ~130mm length
-p(14) = 1e-4;   % Ixx2
-p(15) = 5e-4;   % Iyy2  (long axis)
-p(16) = 5e-4;   % Izz2
-
-% Link 3: ~120mm length
-p(17) = 1e-4;
-p(18) = 4e-4;
-p(19) = 4e-4;
-
-% Link 4: ~125mm + gripper
-p(20) = 8e-5;
-p(21) = 3e-4;
-p(22) = 3e-4;
-
-pf_safe = [0.05; 0.10; 0.10; 0.02];   % Nm·s/rad, scaled to joint size
-pf = pf_safe;
-
-Kp = diag([ 10 10 10 10 ]);
-Kv = diag([ 2 2 2 2 ]);
+p(10) = 0.133;
+p(7) = 0.100;
+Kp = diag([ 30 20 70 10 ]);
+Kv = diag([ 2 4 2 2 ]);
 % alpha = 0.3;
 % qdot_filt = 0;
 % qdot_prev_filt = 0;
 
 %% Constant trajectory
-t_sample       = 0.04;
-tfin           = 10;
+% t_sample       = 0.04;
+% tfin           = 10;
+% t = 0:t_sample:tfin;
+% q1_desired = 0.0*ones(1, length(t));
+% q2_desired = 0.0*ones(1, length(t));
+% q3_desired = 0.0*ones(1, length(t));
+% q4_desired = 1.0*ones(1, length(t));
+% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+
+%% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
+t_sample = 0.04;
+tfin = 10;
 t = 0:t_sample:tfin;
-q1_desired = 0.0*ones(1, length(t));
-q2_desired = 0.0*ones(1, length(t));
-q3_desired = 0.0*ones(1, length(t));
-q4_desired = 1.0*ones(1, length(t));
+
+omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
+
+q1_desired = 0.5 * sin(omega * t);
+q2_desired = -0.5 * sin(omega * t);
+q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
+q4_desired = -0.5 * sin(omega * t);
+
 q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+
+% Velocity (automatically sinusoidal)
+q1_desired_dot = 0.5 * omega * cos(omega * t);
+q2_desired_dot = -0.5 * omega * cos(omega * t);
+q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
+q4_desired_dot = -0.5 * omega * cos(omega * t);
+
+q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
+
+% Acceleration (automatically sinusoidal)
+q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
+q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
+q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+
+q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
 
 %% Load desired trajectory from file 
 %square_trajectory
@@ -78,7 +80,7 @@ q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 % q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
 % t_sample       = traj_data.t_sample;
 % tfin           = (size(q_desired,2)-1) * t_sample;
-t = 0:t_sample:tfin;
+% t = 0:t_sample:tfin;
 
 %% Define robot
 robot = Robot();
