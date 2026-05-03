@@ -169,7 +169,44 @@ disp(' - Identification/FK_fun.m')
 disp(' - Identification/ViscousFriction_fun.m')
 
 
+%% Linear-in-parameters regressor Y(q,qdot,qddot)
+% tau = M(q)*qpp + C(q,qdot)*qp + G(q) = Y(q,qp,qpp) * pi
+% pi contains the 16 inertial parameters (masses + diagonal inertias).
 
+pi_sym = [m1; m2; m3; m4; ...
+          Ixx1; Iyy1; Izz1; ...
+          Ixx2; Iyy2; Izz2; ...
+          Ixx3; Iyy3; Izz3; ...
+          Ixx4; Iyy4; Izz4];
+
+tau_sym = M_full*qpp + C_full*qp + G_full;        % 4x1, no friction
+
+% equationsToMatrix verifies linearity in pi_sym and extracts coefficients
+[Y_full, tau_remainder] = equationsToMatrix(tau_sym, pi_sym);
+Y_full = simplify(Y_full);
+
+% Sanity: tau_remainder should be 0 (everything left is gravity g, geom params,
+% all of which sit in p, not pi). If it isn't zero, the dynamics aren't
+% linear in pi as assumed.
+tau_remainder = simplify(tau_remainder);
+disp('Y_full size ='); disp(size(Y_full))
+disp('tau_remainder (should be 0):'); disp(tau_remainder)
+
+%% Validate: Y * pi == M*qpp + C*qp + G
+validation = simplify(Y_full*pi_sym - tau_sym);
+disp('Y*pi - (M*qpp + C*qp + G) (should be 0):'); disp(validation)
+
+%% Generate Y_fun
+matlabFunction(Y_full, ...
+    'File', 'generated_dynamics/Y_fun', ...
+    'Vars', {q, qp, qpp, p}, 'Optimize', true);
+
+matlabFunction(Y_full, ...
+    'File', 'Identification/Y_fun', ...
+    'Vars', {q, qp, qpp, p}, 'Optimize', true);
+
+disp(' - generated_dynamics/Y_fun.m')
+disp(' - Identification/Y_fun.m')
 
 function A = dh_axis(theta, d, a, alpha, axis_name)
     if axis_name == 'z'
