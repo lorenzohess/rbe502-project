@@ -25,34 +25,70 @@ p = [R.p(1:6); ...
 pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
 p_bar = p;
 
-Kp = diag([20 30 50 40]);
-Kv = diag([4 6 6 2]);
-A = [zeros(n) eye(n); -Kp -Kv];
+%% Constant trajectory
+Kp = diag([0.2 0.2 0.4 0.2]);
+Kv = diag([0.1 0.05 0.05 0.05]);
+t_sample       = 0.04;
+tfin           = 5;
+t = 0:t_sample:tfin;
+q1_desired = deg2rad(39)*ones(1, length(t));
+q2_desired = deg2rad(-28)*ones(1, length(t));
+q3_desired = deg2rad(55)*ones(1, length(t));
+q4_desired = deg2rad(-57)*ones(1, length(t));
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+
+q_dot_filt = zeros(4, 1);
+alpha = 0.2;
+Mbar = M_fun(q_desired(:,1), p_bar);
+
+A = [zeros(n) eye(n); -pinv(Mbar)*Kp -pinv(Mbar)*Kv];
 Q = eye(2*n);
 P = lyap(A', Q);
-rho = 2;
+rho = 0.08;
 
-%% Constant trajectory
-% t_sample       = 0.04;
-% tfin           = 10;
+%% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
+% Kp = diag([0.2 0.2 0.5 0.2]);
+% Kv = diag([0.05 0.05 0.05 0.05]);
+% t_sample = 0.04;
+% tfin = 10;
 % t = 0:t_sample:tfin;
-% q1_desired = 0.0*ones(1, length(t));
-% q2_desired = 0.0*ones(1, length(t));
-% q3_desired = 0.0*ones(1, length(t));
-% q4_desired = 1.0*ones(1, length(t));
+
+% omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
+
+% q1_desired = 0.5 * sin(omega * t);
+% q2_desired = -0.5 * sin(omega * t);
+% q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
+% q4_desired = -0.5 * sin(omega * t);
+
 % q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+
+% % Velocity (automatically sinusoidal)
+% q1_desired_dot = 0.5 * omega * cos(omega * t);
+% q2_desired_dot = -0.5 * omega * cos(omega * t);
+% q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
+% q4_desired_dot = -0.5 * omega * cos(omega * t);
+
+% q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
+
+% % Acceleration (automatically sinusoidal)
+% q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
+% q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+% q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
+% q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+
+% q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
 
 %% Load desired trajectory from file 
 %square_trajectory
-traj_data      = load('desired_trajectory.mat');
-q_desired      = traj_data.q_desired;       % 4 x N
-q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
-q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
-t_sample       = traj_data.t_sample;
-tfin           = (size(q_desired,2)-1) * t_sample;
-t = 0:t_sample:tfin;
+% traj_data      = load('desired_trajectory.mat');
+% q_desired      = traj_data.q_desired;       % 4 x N
+% q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
+% q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
+% t_sample       = traj_data.t_sample;
+% tfin           = (size(q_desired,2)-1) * t_sample;
+% t = 0:t_sample:tfin;
 
 %% Define robot
 robot = Robot();
@@ -76,7 +112,8 @@ for k = 1:length(t)
     %% Create Control Law Your Controller goes Here
     q_now = (joint_readings(1, :)*factor_degre_to_rad)';
     q_dot_now = (joint_readings(2, :)*factor_degre_to_rad)';
-    tau_k(:, k) = tau_robust(q_now, q_dot_now, q_desired(:,k), q_desired_dot(:,k), q_desired_ddot(:,k), Kp, Kv, P, rho, p_bar);
+    q_dot_filt = alpha * q_dot_now + (1 - alpha) * q_dot_filt;
+    tau_k(:, k) = tau_robust(q_now, q_dot_filt, q_desired(:,k), q_desired_dot(:,k), q_desired_ddot(:,k), Kp, Kv, P, rho, p_bar);
 
     torques = [tau_k(1, k), tau_k(2, k), tau_k(3, k), tau_k(4, k)];
     %% This is the mapping to Amperes
@@ -107,30 +144,13 @@ robot.writeCurrents(current); % Write joints to zero position
 disp("Movement Complete")
 
 %% Plotting
-%% Animate the robot and overlay desired/actual end-effector paths
-% figure('Name','Robot animation','NumberTitle','off')
-% robot.plot(q_real(:,1:length(t))', 'trail', 'b-', 'fps', 30)
-% hold on
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5)
-% legend('','Desired','Location','best')
-
-%% Static 3D comparison plot
-% figure('Name','EE trajectory','NumberTitle','off')
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5); hold on
-% plot3(p_real_log(1,:),    p_real_log(2,:),    p_real_log(3,:),    'b-', 'LineWidth', 1.5)
-% xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]')
-% grid on; axis equal
-% legend('Desired','Actual'); title('End-effector trajectory')
-
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% tau_all = tau_k;
 
 figure(1)
 for i = 1:4
     subplot(2,2,i)
     plot(t, q_desired(i,:), 'r.')
     hold on
-    plot(t, q_real(i,1:length(t)), 'b.')
+    plot(t, q_real(i,1:length(t)), 'g.')
     xlabel('Time [s]')
     ylabel(['q', num2str(i), ' [rad]'])
     title(['Joint ', num2str(i), ' Angle'])

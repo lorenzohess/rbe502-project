@@ -18,5 +18,5 @@ function tau = tau_robust(q, qdot, qd, qdDot, qdDdot, Kp, Kv, P, rho, p_bar)
         Delta = zeros(4, 1);
     end
 
-    tau = Mbar * (qdDdot + Kv*edot + Kp*e + Delta) + Cbar*qdot + Gbar;
+    tau = Mbar * qdDdot + Kv*edot + Kp*e + Delta + Cbar*qdot + Gbar;
 end

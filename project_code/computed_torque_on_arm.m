@@ -98,9 +98,6 @@ joint_readings = robot.getJointsReadings();
 q_real(:, 1) = joint_readings(1, :)*factor_degre_to_rad;
 q_dot_real(:, 1) = joint_readings(2, :)*factor_degre_to_rad;
 current_real(:, 1) = joint_readings(3, :)*factor_mA_to_A;
-%% Plotting
-% p_real_log    = zeros(3, length(t));
-% p_desired_log = zeros(3, length(t));
 %% Control Loop
 for k = 1:length(t) 
     tic
@@ -153,23 +150,6 @@ robot.writeCurrents(current); % Write joints to zero position
 disp("Movement Complete")
 
 %% Plotting
-%% Animate the robot and overlay desired/actual end-effector paths
-% figure('Name','Robot animation','NumberTitle','off')
-% robot.plot(q_real(:,1:length(t))', 'trail', 'b-', 'fps', 30)
-% hold on
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5)
-% legend('','Desired','Location','best')
-
-%% Static 3D comparison plot
-% figure('Name','EE trajectory','NumberTitle','off')
-% plot3(p_desired_log(1,:), p_desired_log(2,:), p_desired_log(3,:), 'r-', 'LineWidth', 1.5); hold on
-% plot3(p_real_log(1,:),    p_real_log(2,:),    p_real_log(3,:),    'b-', 'LineWidth', 1.5)
-% xlabel('x [m]'); ylabel('y [m]'); zlabel('z [m]')
-% grid on; axis equal
-% legend('Desired','Actual'); title('End-effector trajectory')
-
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% tau_all = tau_k;
 
 figure(1)
 for i = 1:4
