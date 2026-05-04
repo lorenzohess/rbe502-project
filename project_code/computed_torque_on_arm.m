@@ -27,50 +27,50 @@ q_dot_filt = zeros(4, 1);
 alpha = 0.2;
 
 %% Constant trajectory
-% Kp = diag([0.2 0.15 0.45 0.2]);
-% Kv = diag([0.05 0.05 0.05 0.05]);
-% t_sample       = 0.04;
-% tfin           = 5;
-% t = 0:t_sample:tfin;
-% q1_desired = deg2rad(39)*ones(1, length(t));
-% q2_desired = deg2rad(-28)*ones(1, length(t));
-% q3_desired = deg2rad(55)*ones(1, length(t));
-% q4_desired = deg2rad(-57)*ones(1, length(t));
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+Kp = diag([0.175 0.25 0.275 0.125]);
+Kv = diag([0.05 0.035 0.035 0.03]);
+t_sample       = 0.04;
+tfin           = 3;
+t = 0:t_sample:tfin;
+q1_desired = deg2rad(39)*ones(1, length(t));
+q2_desired = deg2rad(-28)*ones(1, length(t));
+q3_desired = deg2rad(55)*ones(1, length(t));
+q4_desired = deg2rad(-57)*ones(1, length(t));
+q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 
 %% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
-Kp = diag([0.2 0.2 0.5 0.2]);
-Kv = diag([0.05 0.05 0.05 0.05]);
-t_sample = 0.04;
-tfin = 10;
-t = 0:t_sample:tfin;
+% Kp = diag([0.175 0.3 0.3 0.175]);
+% Kv = diag([0.05 0.05 0.035 0.03]);
+% t_sample = 0.04;
+% tfin = 10;
+% t = 0:t_sample:tfin;
 
-omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
+% omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
 
-q1_desired = 0.5 * sin(omega * t);
-q2_desired = -0.5 * sin(omega * t);
-q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
-q4_desired = -0.5 * sin(omega * t);
+% q1_desired = 0.5 * sin(omega * t);
+% q2_desired = -0.5 * sin(omega * t);
+% q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
+% q4_desired = -0.5 * sin(omega * t);
 
-q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
 
-% Velocity (automatically sinusoidal)
-q1_desired_dot = 0.5 * omega * cos(omega * t);
-q2_desired_dot = -0.5 * omega * cos(omega * t);
-q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
-q4_desired_dot = -0.5 * omega * cos(omega * t);
+% % Velocity (automatically sinusoidal)
+% q1_desired_dot = 0.5 * omega * cos(omega * t);
+% q2_desired_dot = -0.5 * omega * cos(omega * t);
+% q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
+% q4_desired_dot = -0.5 * omega * cos(omega * t);
 
-q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
+% q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
 
-% Acceleration (automatically sinusoidal)
-q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
-q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
-q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
-q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+% % Acceleration (automatically sinusoidal)
+% q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
+% q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+% q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
+% q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
 
-q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
+% q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
 
 %% Load desired trajectory from file 
 %square_trajectory
@@ -150,36 +150,4 @@ robot.writeCurrents(current); % Write joints to zero position
 disp("Movement Complete")
 
 %% Plotting
-
-figure(1)
-for i = 1:4
-    subplot(2,2,i)
-    plot(t, q_desired(i,:), 'r.')
-    hold on
-    plot(t, q_real(i,1:length(t)), 'b.')
-    xlabel('Time [s]')
-    ylabel(['q', num2str(i), ' [rad]'])
-    title(['Joint ', num2str(i), ' Angle'])
-    legend('Desired', 'Current', 'Location', 'best')
-    grid on
-end
-
-% figure(2)
-% for i = 1:4
-%     subplot(2,2,i)
-%     plot(t, q_dot_real(i,1:length(t)), 'k.')
-%     xlabel('Time [s]')
-%     ylabel(['dq', num2str(i), ' [rad/s]'])
-%     title(['Joint ', num2str(i), ' Velocity'])
-%     grid on
-% end
-
-% figure(3)
-% for i = 1:4
-%     subplot(2,2,i)
-%     plot(t, tau_all(i,:), 'm.')
-%     xlabel('Time [s]')
-%     ylabel(['tau', num2str(i), ' [Nm]'])
-%     title(['Joint ', num2str(i), ' Control Torque'])
-%     grid on
-% end
+plot_values

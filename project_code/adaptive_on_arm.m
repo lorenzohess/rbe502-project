@@ -178,18 +178,5 @@ robot.writeCurrents(current); % Write joints to zero position
 disp("Movement Complete")
 
 %% Plotting
-figure(1)
-for i = 1:4
-    subplot(2,2,i)
-    plot(t, q_desired(i,:), 'r.')
-    hold on
-    plot(t, q_real(i,1:length(t)), 'g.')
-    xlabel('Time [s]')
-    ylabel(['q', num2str(i), ' [rad]'])
-    title(['Joint ', num2str(i), ' Angle'])
-    legend('Desired', 'Current', 'Location', 'best')
-    grid on
-end
-
-% figure(2)
-% plot_pihat
+plot_values
+plot_pihat
