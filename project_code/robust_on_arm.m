@@ -26,10 +26,10 @@ pf = [R.x_opt_vec(17); R.x_opt_vec(18); R.x_opt_vec(19); R.x_opt_vec(20)];
 p_bar = p;
 
 %% Constant trajectory
-Kp = diag([0.175 0.325 0.175 0.175]);
-Kv = diag([0.05 0.035 0.03 0.03]);
+Kp = diag([0.25 0.25 0.15 0.275]);
+Kv = diag([0.05 0.04 0.03 0.04]);
 t_sample       = 0.04;
-tfin           = 5;
+tfin           = 3;
 t = 0:t_sample:tfin;
 q1_desired = deg2rad(39)*ones(1, length(t));
 q2_desired = deg2rad(-28)*ones(1, length(t));
@@ -40,11 +40,11 @@ q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
 
 q_dot_filt = zeros(4, 1);
-alpha = 0.2;
+alpha = 1.0;
 
 %% Sinusoidal trajectory for q3 (amplitude \pm 0.5 rad)
-% Kp = diag([0.2 0.35 0.6 0.2]);
-% Kv = diag([0.075 0.05 0.05 0.05]);
+% Kp = diag([0.175 0.4 0.5 0.3]);
+% Kv = diag([0.03 0.03 0.03 0.04]);
 % t_sample = 0.04;
 % tfin = 10;
 % t = 0:t_sample:tfin;
@@ -79,7 +79,7 @@ Mbar = M_fun(q_desired(:,1), p_bar);
 A = [zeros(n) eye(n); -pinv(Mbar)*Kp -pinv(Mbar)*Kv];
 Q = eye(2*n);
 P = lyap(A', Q);
-rho = 0.08;
+rho = 8;
 %% Load desired trajectory from file 
 %square_trajectory
 % traj_data      = load('desired_trajectory.mat');

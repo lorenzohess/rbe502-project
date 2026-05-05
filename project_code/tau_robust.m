@@ -7,17 +7,20 @@ function tau = tau_robust(q, qdot, qd, qdDot, qdDdot, Kp, Kv, P, rho, p_bar)
     Gbar = G_fun(q, p_bar);
 
     E = [zeros(4); eye(4)];
-    P;
+
     xi = [e; edot];
     W = 2 * E' * P * xi;
 
-    nW = norm(W);
-    epsilon = 0.1;
-    if nW > epsilon
-        Delta = rho * (W / nW);
-    else
-        Delta = rho * (W / epsilon);
-    end
+    nW = norm(W)
 
-    tau = Mbar * qdDdot + Kv*edot + Kp*e + Delta + Cbar*qdot + Gbar;
+    epsilon = 0.25;
+    % if nW > epsilon
+        Delta = rho * (W / nW);
+        % disp("0")
+    % else
+        % Delta = rho * (W / epsilon);
+        % disp("1")
+    % end
+
+    tau = Mbar * (qdDdot + Delta) + Kv*edot + Kp*e + Cbar*qdot + Gbar;
 end
