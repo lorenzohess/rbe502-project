@@ -9,7 +9,7 @@ function R_gain = construct_R()
 %
 %   Order matches pi_hat = p_bar(7:22).
 
-    R_default = 1e8;
+    R_default = 1e6;
 
     %% Per-parameter adaptation gains
     Rm1 = R_default;

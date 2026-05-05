@@ -13,7 +13,7 @@ function tau = tau_robust(q, qdot, qd, qdDot, qdDdot, Kp, Kv, P, rho, p_bar)
 
     nW = norm(W)
 
-    epsilon = 0.25;
+    % epsilon = 0.25;
     % if nW > epsilon
         Delta = rho * (W / nW);
         % disp("0")

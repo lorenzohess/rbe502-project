@@ -1,7 +1,7 @@
-function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
-                                                      qd, qdDot, qdDdot, ...
-                                                      Kp, Kv, P, R_inv, ...
-                                                      pi_hat, p_bar, dt)
+function [tau, pi_hat_new] = tau_adaptive(q, qdot, ...
+                                          qd, qdDot, qdDdot, ...
+                                          Kp, Kv, P, R_inv, ...
+                                          pi_hat, p_bar, dt)
 % Adaptive computed-torque controller.
 %   tau = Y(q,qdot,a,p_bar) * pi_hat
 %   pi_hat_dot = R^{-1} Y(q,qdot,qddot,p_bar)^T B_hat^{-1} E^T P xi
@@ -15,14 +15,14 @@ function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
     edot = qdDot - qdot;
     xi   = [e; edot];
 
-
     % B_hat(q) via column extraction
     zer    = zeros(n,1);
     Y_grav = Y_fun(q, zer, zer, p_bar);
     B_hat  = zeros(n);
     for jj = 1:n
-        ej         = zer; ej(jj) = 1;
-        Y_j        = Y_fun(q, zer, ej, p_bar);
+        ej = zer;
+        ej(jj) = 1;
+        Y_j = Y_fun(q, zer, ej, p_bar);
         B_hat(:,jj) = (Y_j - Y_grav) * pi_hat;
     end
     
@@ -38,5 +38,10 @@ function [tau, pi_hat_new, pi_hat_dot] = tau_adaptive(q, qdot, ...
     pi_hat_dot = R_inv * Y_dyn' * pinv(B_hat)' * E' * P * xi;
 
     % Euler integration
-    pi_hat_new = pi_hat + pi_hat_dot * dt;
+    delta_pi_hat = pi_hat_dot * dt;
+    if norm(delta_pi_hat) > 1.05 * norm(pi_hat)
+        delta_pi_hat = 0;
+        disp("Error")
+    end
+    pi_hat_new = pi_hat + delta_pi_hat;
 end
