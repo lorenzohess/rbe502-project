@@ -44,4 +44,5 @@ function [tau, pi_hat_new] = tau_adaptive(q, qdot, ...
         disp("Error")
     end
     pi_hat_new = pi_hat + delta_pi_hat;
+    pi_hat_new = max(pi_hat_new, 1e-6);
 end

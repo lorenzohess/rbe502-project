@@ -72,10 +72,10 @@ R_inv = pinv(R_gain);
 % Kv = diag([0.05 0.05 0.05 0.05]);
 
 % Plus
-% load("desired_trajectory_plus.mat")
+load("desired_trajectory_plus.mat")
 
-% Circle
-load("desired_trajectory_line.mat")
+% Line
+% load("desired_trajectory_line.mat")
 
 Kp = diag([0.25 0.385 0.365 0.325]);
 Kv = diag([0.05 0.06 0.06 0.06]);
