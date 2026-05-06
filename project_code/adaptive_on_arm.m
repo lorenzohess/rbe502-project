@@ -44,70 +44,62 @@ n_p    = length(pi_hat);
 R_gain = construct_R;
 R_inv = pinv(R_gain);
 
-%% Constant trajectory
-% Kp = diag([0.25 0.385 0.365 0.295]);
-% Kv = diag([0.05 0.06 0.06 0.06]);
-% t_sample       = 0.04;
-% tfin           = 5;
-% t = 0:t_sample:tfin;
-% q1_desired = deg2rad(39)*ones(1, length(t));
-% q2_desired = deg2rad(-28)*ones(1, length(t));
-% q3_desired = deg2rad(55)*ones(1, length(t));
-% q4_desired = deg2rad(-57)*ones(1, length(t));
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-% q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
-% q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+poseReg = 1;
 
-
-%% Load desired trajectory from file 
-%square_trajectory
-% traj_data      = load('desired_trajectory_plus.mat');
-% q_desired      = traj_data.q_desired;       % 4 x N
-% q_desired_dot  = traj_data.q_desired_dot;   % 4 x N
-% q_desired_ddot = traj_data.q_desired_ddot;  % 4 x N
-% t_sample       = traj_data.t_sample;
-% tfin           = (size(q_desired,2)-1) * t_sample;
-% t = 0:t_sample:tfin;
-% Kp = diag([0.2 0.3 0.3 0.2]);
-% Kv = diag([0.05 0.05 0.05 0.05]);
-
-% Plus
-load("desired_trajectory_plus.mat")
-
-% Line
-% load("desired_trajectory_line.mat")
-
-Kp = diag([0.25 0.385 0.365 0.325]);
-Kv = diag([0.05 0.06 0.06 0.06]);
-t_sample = 0.04;
-tfin = (size(q_desired,2)-1) * t_sample;
-t = 0:t_sample:tfin;
-
-%% Sinusoidal
-% omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
-
-% q1_desired = 0.5 * sin(omega * t);
-% q2_desired = -0.5 * sin(omega * t);
-% q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
-% q4_desired = -0.5 * sin(omega * t);
-
-% q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
-
-% % Velocity (automatically sinusoidal)
-% q1_desired_dot = 0.5 * omega * cos(omega * t);
-% q2_desired_dot = -0.5 * omega * cos(omega * t);
-% q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
-% q4_desired_dot = -0.5 * omega * cos(omega * t);
-
-% q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
-
-% % Acceleration (automatically sinusoidal)
-% q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
-% q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
-% q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
-% q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
-
-% q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
+if poseReg == 1
+    %% Constant trajectory
+    Kp = diag([0.25 0.385 0.365 0.295]);
+    Kv = diag([0.05 0.06 0.06 0.06]);
+    t_sample       = 0.04;
+    tfin           = 5;
+    t = 0:t_sample:tfin;
+    q1_desired = deg2rad(39)*ones(1, length(t));
+    q2_desired = deg2rad(-28)*ones(1, length(t));
+    q3_desired = deg2rad(55)*ones(1, length(t));
+    q4_desired = deg2rad(-57)*ones(1, length(t));
+    q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+    q_desired_dot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+    q_desired_ddot = [0*q1_desired; 0*q2_desired; 0*q3_desired; 0*q4_desired];
+else
+    % Plus
+    % load("desired_trajectory_plus.mat")
+    
+    % Line
+    % load("desired_trajectory_line.mat")
+    
+    Kp = diag([0.25 0.7 0.7 0.325]);
+    Kv = diag([0.05 0.06 0.06 0.06]);
+    t_sample = 0.04;
+    % tfin = (size(q_desired,2)-1) * t_sample;
+    tfin = 15;
+    t = 0:t_sample:tfin;
+    
+    %% Sinusoidal
+    omega = 1.0;  % angular frequency (rad/s). Feel free to change (e.g. 0.5 for slower motion, 2.0 for faster)
+    
+    q1_desired = 0.5 * sin(omega * t);
+    q2_desired = -0.5 * sin(omega * t);
+    q3_desired = -0.5 * sin(omega * t);          % sinusoidal position \pm 0.5 rad
+    q4_desired = -0.5 * sin(omega * t);
+    
+    q_desired = [q1_desired; q2_desired; q3_desired; q4_desired];
+    
+    % Velocity (automatically sinusoidal)
+    q1_desired_dot = 0.5 * omega * cos(omega * t);
+    q2_desired_dot = -0.5 * omega * cos(omega * t);
+    q3_desired_dot = -0.5 * omega * cos(omega * t);   % velocity = d(q3)/dt
+    q4_desired_dot = -0.5 * omega * cos(omega * t);
+    
+    q_desired_dot = [q1_desired_dot; q2_desired_dot; q3_desired_dot; q4_desired_dot];
+    
+    % Acceleration (automatically sinusoidal)
+    q1_desired_ddot = -0.5 * omega^2 * sin(omega * t);
+    q2_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+    q3_desired_ddot = 0.5 * omega^2 * sin(omega * t);  % acceleration = d²(q3)/dt²
+    q4_desired_ddot = 0.5 * omega^2 * sin(omega * t);
+    
+    q_desired_ddot = [q1_desired_ddot; q2_desired_ddot; q3_desired_ddot; q4_desired_ddot];
+end
 
 Mbar = M_fun(q_desired(:,1), p_bar);
 A = [zeros(n) eye(n); -pinv(Mbar)*Kp -pinv(Mbar)*Kv];
